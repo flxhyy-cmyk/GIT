@@ -1,0 +1,509 @@
+<Window x:Class="GitToolsWPF.Views.CommitHistoryDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="📜 提交历史 - 图形化展示" 
+        Width="1100"
+        MinHeight="500" MinWidth="900"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="CanResize"
+        Background="{DynamicResource ContentBackground}"
+        Foreground="{DynamicResource TextBrush}"
+        SizeToContent="Manual"
+        WindowStyle="SingleBorderWindow">
+    
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+        
+        <!-- 窗口样式 -->
+        <Style TargetType="Window">
+            <Setter Property="Background" Value="{DynamicResource ContentBackground}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
+        </Style>
+    </Window.Resources>
+    
+    <Grid Margin="15">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*" MinHeight="200"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        
+        <!-- 标题 -->
+        <TextBlock Grid.Row="0" 
+                   Text="📜 提交历史 - 图形化展示" 
+                   FontSize="24" 
+                   FontWeight="Bold" 
+                   Margin="0,0,0,15"
+                   Foreground="{DynamicResource TextBrush}"/>
+        
+        <!-- 当前状态面板 -->
+        <Border Grid.Row="1"
+                Background="{DynamicResource NavBackground}" 
+                BorderBrush="{DynamicResource BorderBrush}" 
+                BorderThickness="2" 
+                Padding="15" 
+                Margin="0,0,0,15"
+                CornerRadius="8">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                
+                <StackPanel Grid.Column="0" Orientation="Horizontal">
+                    <TextBlock Text="📍 当前位置：" 
+                               FontWeight="SemiBold" 
+                               FontSize="14"
+                               Foreground="{DynamicResource TextBrush}" 
+                               VerticalAlignment="Center"/>
+                    <TextBlock Text="{Binding CurrentBranchName}" 
+                               FontWeight="Bold" 
+                               FontSize="16" 
+                               Margin="10,0,0,0"
+                               VerticalAlignment="Center">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Foreground" Value="#007BFF"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsDetachedHead}" Value="True">
+                                        <Setter Property="Foreground" Value="#FFC107"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                    <Border Background="#FFC107" 
+                            Padding="8,4" 
+                            CornerRadius="4" 
+                            Margin="15,0,0,0"
+                            VerticalAlignment="Center"
+                            Visibility="{Binding IsDetachedHead, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <TextBlock Text="⚠️ 分离HEAD状态" 
+                                   FontSize="12"
+                                   FontWeight="Bold"
+                                   Foreground="White"/>
+                    </Border>
+                </StackPanel>
+                
+                <TextBlock Grid.Column="1"
+                           Text="{Binding StatusMessage}"
+                           FontSize="12"
+                           Opacity="0.7"
+                           Margin="20,0,0,0"
+                           VerticalAlignment="Center"
+                           Foreground="{DynamicResource TextBrush}"/>
+            </Grid>
+        </Border>
+        
+        <!-- 筛选和操作栏 -->
+        <Grid Grid.Row="2" Margin="0,0,0,10">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            
+            <!-- 第一行：筛选和刷新 -->
+            <Grid Grid.Row="0" Margin="0,0,0,10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="200"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                
+                <TextBlock Grid.Column="0" 
+                           Text="🔍 筛选：" 
+                           FontWeight="SemiBold" 
+                           FontSize="13"
+                           Foreground="{DynamicResource TextBrush}" 
+                           VerticalAlignment="Center"
+                           Margin="0,0,10,0"/>
+                
+                <ComboBox Grid.Column="1"
+                          ItemsSource="{Binding BranchFilterOptions}"
+                          SelectedItem="{Binding SelectedBranchFilter}"
+                          FontSize="13"
+                          Padding="10,8">
+                    <ComboBox.Style>
+                        <Style TargetType="ComboBox">
+                            <Setter Property="Background" Value="{DynamicResource ContentBackground}"/>
+                            <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
+                            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+                        </Style>
+                    </ComboBox.Style>
+                </ComboBox>
+                
+                <TextBlock Grid.Column="2"
+                           Text="{Binding CommitCountText}"
+                           FontSize="12"
+                           Opacity="0.7"
+                           Margin="15,0,0,0"
+                           VerticalAlignment="Center"
+                           Foreground="{DynamicResource TextBrush}"/>
+                
+                <Button Grid.Column="3"
+                        Content="🔄 刷新"
+                        Command="{Binding RefreshCommand}"
+                        Padding="15,8"
+                        FontSize="13"
+                        Background="#007BFF"
+                        Foreground="White"
+                        BorderThickness="0"
+                        Cursor="Hand">
+                    <Button.Style>
+                        <Style TargetType="Button">
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border Background="{TemplateBinding Background}"
+                                                CornerRadius="5"
+                                                Padding="{TemplateBinding Padding}">
+                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                            <Style.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="#0056B3"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
+            </Grid>
+            
+            <!-- 第二行：图例说明 -->
+            <Border Grid.Row="1"
+                    Background="{DynamicResource NavBackground}"
+                    BorderBrush="{DynamicResource BorderBrush}"
+                    BorderThickness="1"
+                    Padding="12,8"
+                    CornerRadius="5">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="📖 图例：" 
+                               FontWeight="SemiBold" 
+                               FontSize="12"
+                               Margin="0,0,15,0"
+                               VerticalAlignment="Center"
+                               Foreground="{DynamicResource TextBrush}"/>
+                    
+                    <Border Background="{DynamicResource ContentBackground}" Padding="6,3" CornerRadius="3" Margin="0,0,10,0">
+                        <TextBlock FontFamily="Consolas" FontSize="12" FontWeight="ExtraBold" Foreground="#0056B3">
+                            <Run Text="*"/>
+                            <Run Text=" 主线" FontFamily="Segoe UI" FontWeight="SemiBold"/>
+                        </TextBlock>
+                    </Border>
+                    
+                    <Border Background="{DynamicResource ContentBackground}" Padding="6,3" CornerRadius="3" Margin="0,0,10,0">
+                        <TextBlock FontFamily="Consolas" FontSize="12" FontWeight="Bold" Foreground="#6C757D">
+                            <Run Text="| * 分支" FontFamily="Segoe UI" FontWeight="SemiBold"/>
+                        </TextBlock>
+                    </Border>
+                    
+                    <Border Background="#007BFF" Padding="6,3" CornerRadius="3" Margin="0,0,10,0">
+                        <TextBlock FontFamily="Consolas" FontSize="11" FontWeight="Bold" Foreground="White">
+                            <Run Text="1,2,3"/>
+                            <Run Text=" 主线编号" FontFamily="Segoe UI"/>
+                        </TextBlock>
+                    </Border>
+                    
+                    <Border Background="#6F42C1" Padding="6,3" CornerRadius="3" Margin="0,0,10,0">
+                        <TextBlock FontFamily="Consolas" FontSize="11" FontWeight="Bold" Foreground="White">
+                            <Run Text="3A,3B"/>
+                            <Run Text=" 分支编号" FontFamily="Segoe UI"/>
+                        </TextBlock>
+                    </Border>
+                    
+                    <Border Background="#28A745" Padding="6,3" CornerRadius="3" Margin="0,0,10,0">
+                        <TextBlock Text="📍 HEAD" FontSize="11" FontWeight="Bold" Foreground="White"/>
+                    </Border>
+                    
+                    <Border Background="#007BFF" Padding="6,3" CornerRadius="3" Margin="0,0,10,0">
+                        <TextBlock Text="🌿 本地分支" FontSize="11" FontWeight="Bold" Foreground="White"/>
+                    </Border>
+                    
+                    <Border Background="#FD7E14" Padding="6,3" CornerRadius="3">
+                        <TextBlock Text="☁️ 远程分支" FontSize="11" FontWeight="Bold" Foreground="White"/>
+                    </Border>
+                </StackPanel>
+            </Border>
+        </Grid>
+        
+        <!-- 提交历史列表（图形化） -->
+        <Border Grid.Row="3"
+                Background="{DynamicResource NavBackground}" 
+                BorderBrush="{DynamicResource BorderBrush}" 
+                BorderThickness="2" 
+                Padding="0" 
+                CornerRadius="8"
+                Margin="0,0,0,10">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" 
+                          HorizontalScrollBarVisibility="Auto"
+                          Padding="8"
+                          CanContentScroll="True">
+                <ItemsControl ItemsSource="{Binding CommitHistory}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Padding="10,8" 
+                                    Margin="2" 
+                                    Background="{DynamicResource ContentBackground}"
+                                    BorderBrush="{DynamicResource BorderBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="5"
+                                    Cursor="Hand">
+                                <Border.InputBindings>
+                                    <MouseBinding MouseAction="LeftClick" 
+                                                  Command="{Binding DataContext.SwitchToCommitCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                  CommandParameter="{Binding}"/>
+                                </Border.InputBindings>
+                                <Border.Style>
+                                    <Style TargetType="Border">
+                                        <Style.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter Property="Background" Value="{DynamicResource HoverBrush}"/>
+                                            </Trigger>
+                                            <DataTrigger Binding="{Binding IsCurrent}" Value="True">
+                                                <Setter Property="BorderBrush" Value="#28A745"/>
+                                                <Setter Property="BorderThickness" Value="2"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
+                                
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" MinWidth="120" MaxWidth="200"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*" MinWidth="300"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    
+                                    <!-- 图形符号（分支线） - 增强显示 -->
+                                    <Border Grid.Column="0" 
+                                            Background="{DynamicResource NavBackground}"
+                                            Padding="8,4"
+                                            CornerRadius="4"
+                                            VerticalAlignment="Center"
+                                            HorizontalAlignment="Left"
+                                            MinWidth="110">
+                                        <TextBlock Text="{Binding GraphSymbols}" 
+                                                   FontFamily="Consolas"
+                                                   FontSize="14"
+                                                   FontWeight="Bold"
+                                                   VerticalAlignment="Center"
+                                                   TextWrapping="NoWrap"
+                                                   TextTrimming="None">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <!-- 默认颜色：灰色（分支） -->
+                                                    <Setter Property="Foreground" Value="#6C757D"/>
+                                                    <Style.Triggers>
+                                                        <!-- 如果是主线（没有分支符号），用深蓝色 -->
+                                                        <DataTrigger Binding="{Binding IsMainLine}" Value="True">
+                                                            <Setter Property="Foreground" Value="#0056B3"/>
+                                                            <Setter Property="FontWeight" Value="ExtraBold"/>
+                                                        </DataTrigger>
+                                                        <!-- 如果是当前提交，用绿色 -->
+                                                        <DataTrigger Binding="{Binding IsCurrent}" Value="True">
+                                                            <Setter Property="Foreground" Value="#28A745"/>
+                                                            <Setter Property="FontWeight" Value="ExtraBold"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+                                    </Border>
+                                    
+                                    <!-- 版本编号和短哈希 -->
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="10,0,0,0">
+                                        <!-- 版本编号 -->
+                                        <Border Padding="10,5"
+                                                CornerRadius="4"
+                                                VerticalAlignment="Center"
+                                                HorizontalAlignment="Left"
+                                                Margin="0,0,8,0">
+                                            <Border.Style>
+                                                <Style TargetType="Border">
+                                                    <!-- 默认：分支提交用紫色 -->
+                                                    <Setter Property="Background" Value="#6F42C1"/>
+                                                    <Style.Triggers>
+                                                        <!-- 主线提交用蓝色 -->
+                                                        <DataTrigger Binding="{Binding IsMainLine}" Value="True">
+                                                            <Setter Property="Background" Value="#007BFF"/>
+                                                        </DataTrigger>
+                                                        <!-- 当前提交用绿色 -->
+                                                        <DataTrigger Binding="{Binding IsCurrent}" Value="True">
+                                                            <Setter Property="Background" Value="#28A745"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Border.Style>
+                                            <TextBlock Text="{Binding VersionNumber}" 
+                                                       FontWeight="Bold" 
+                                                       FontSize="14"
+                                                       FontFamily="Consolas"
+                                                       Foreground="White"
+                                                       TextWrapping="NoWrap"
+                                                       MinWidth="30"
+                                                       TextAlignment="Center"/>
+                                        </Border>
+                                        
+                                        <!-- 短哈希 -->
+                                        <Border Background="#6C757D"
+                                                Padding="8,5"
+                                                CornerRadius="4"
+                                                VerticalAlignment="Center"
+                                                HorizontalAlignment="Left">
+                                            <TextBlock Text="{Binding ShortHash}" 
+                                                       FontWeight="SemiBold" 
+                                                       FontSize="11"
+                                                       FontFamily="Consolas"
+                                                       Foreground="White"
+                                                       TextWrapping="NoWrap"
+                                                       Opacity="0.9"/>
+                                        </Border>
+                                    </StackPanel>
+                                    
+                                    <!-- 提交信息和标签 -->
+                                    <StackPanel Grid.Column="2" Margin="15,0,10,0" VerticalAlignment="Center">
+                                        <!-- 分支标签行 -->
+                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
+                                            <!-- HEAD 标签 -->
+                                            <Border Background="#28A745" 
+                                                    Padding="6,3" 
+                                                    CornerRadius="4" 
+                                                    Margin="0,0,6,0"
+                                                    Visibility="{Binding IsHead, Converter={StaticResource BoolToVisibilityConverter}}">
+                                                <TextBlock Text="📍 HEAD" 
+                                                           FontSize="11"
+                                                           FontWeight="Bold"
+                                                           Foreground="White"/>
+                                            </Border>
+                                            
+                                            <!-- 本地分支标签 -->
+                                            <Border Background="#007BFF" 
+                                                    Padding="6,3" 
+                                                    CornerRadius="4" 
+                                                    Margin="0,0,6,0"
+                                                    Visibility="{Binding IsLocalBranch, Converter={StaticResource BoolToVisibilityConverter}}">
+                                                <TextBlock Text="🌿 本地分支" 
+                                                           FontSize="11"
+                                                           FontWeight="Bold"
+                                                           Foreground="White"/>
+                                            </Border>
+                                            
+                                            <!-- 远程分支标签 -->
+                                            <Border Background="#FD7E14" 
+                                                    Padding="6,3" 
+                                                    CornerRadius="4"
+                                                    Margin="0,0,6,0"
+                                                    Visibility="{Binding IsRemoteBranch, Converter={StaticResource BoolToVisibilityConverter}}">
+                                                <TextBlock Text="☁️ 远程分支" 
+                                                           FontSize="11"
+                                                           FontWeight="Bold"
+                                                           Foreground="White"/>
+                                            </Border>
+                                            
+                                            <!-- 分支名称 -->
+                                            <TextBlock Text="{Binding Branches}" 
+                                                       FontSize="11"
+                                                       FontStyle="Italic"
+                                                       Opacity="0.7"
+                                                       VerticalAlignment="Center"
+                                                       Foreground="{DynamicResource TextBrush}"/>
+                                        </StackPanel>
+                                        
+                                        <!-- 提交信息 -->
+                                        <TextBlock Text="{Binding Message}" 
+                                                   FontSize="14"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource TextBrush}"
+                                                   TextWrapping="Wrap"
+                                                   MaxWidth="600"
+                                                   Margin="0,0,0,5"/>
+                                        
+                                        <!-- 作者和日期 -->
+                                        <TextBlock FontSize="12" Opacity="0.6" Foreground="{DynamicResource TextBrush}">
+                                            <Run Text="👤"/>
+                                            <Run Text="{Binding Author}"/>
+                                            <Run Text=" • "/>
+                                            <Run Text="🕒"/>
+                                            <Run Text="{Binding Date}"/>
+                                        </TextBlock>
+                                    </StackPanel>
+                                    
+                                    <!-- 当前版本标记 -->
+                                    <Border Grid.Column="3" 
+                                            Background="#28A745"
+                                            Padding="12,6"
+                                            CornerRadius="5"
+                                            VerticalAlignment="Center"
+                                            Visibility="{Binding IsCurrent, Converter={StaticResource BoolToVisibilityConverter}}">
+                                        <TextBlock Text="✓ 当前版本" 
+                                                   FontSize="12"
+                                                   FontWeight="Bold"
+                                                   Foreground="White"/>
+                                    </Border>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </Border>
+        
+        <!-- 底部按钮 -->
+        <Grid Grid.Row="4" Margin="0,15,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            
+            <TextBlock Grid.Column="0"
+                       FontSize="12"
+                       Opacity="0.7"
+                       VerticalAlignment="Center"
+                       Foreground="{DynamicResource TextBrush}"
+                       TextWrapping="Wrap">
+                <Run Text="💡 提示："/>
+                <Run Text="点击任意提交可切换到该版本查看代码 • "/>
+                <Run Text="版本编号：主线用数字(1,2,3)，分支用字母后缀(3A,3B)"/>
+            </TextBlock>
+            
+            <Button Grid.Column="1"
+                    Content="关闭"
+                    Click="CloseButton_Click"
+                    Padding="25,10"
+                    FontSize="14"
+                    Background="#6C757D"
+                    Foreground="White"
+                    BorderThickness="0"
+                    Cursor="Hand">
+                <Button.Style>
+                    <Style TargetType="Button">
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="{TemplateBinding Background}"
+                                            CornerRadius="5"
+                                            Padding="{TemplateBinding Padding}">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                        <Style.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#5A6268"/>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </Button.Style>
+            </Button>
+        </Grid>
+    </Grid>
+</Window>

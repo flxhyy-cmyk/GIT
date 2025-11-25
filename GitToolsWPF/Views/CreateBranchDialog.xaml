@@ -1,0 +1,192 @@
+<Window x:Class="GitToolsWPF.Views.CreateBranchDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="创建分支" 
+        Height="420" Width="500"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        Background="{DynamicResource ContentBackground}"
+        Foreground="{DynamicResource TextBrush}"
+        WindowStyle="SingleBorderWindow">
+    <Grid Margin="25">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- 标题 -->
+        <TextBlock Grid.Row="0" 
+                   Text="⚠️ 检测到游离 HEAD 状态" 
+                   FontSize="20" 
+                   FontWeight="Bold" 
+                   Foreground="#FFC107"
+                   Margin="0,0,0,15"/>
+
+        <!-- 说明 -->
+        <TextBlock Grid.Row="1" 
+                   TextWrapping="Wrap" 
+                   Margin="0,0,0,20"
+                   LineHeight="22"
+                   Foreground="{DynamicResource TextBrush}">
+            当前不在任何分支上，无法直接推送。<LineBreak/>
+            建议创建新分支以保存您的更改。
+        </TextBlock>
+
+        <!-- 当前状态信息 -->
+        <Border Grid.Row="2" 
+                Background="{DynamicResource NavBackground}"
+                BorderBrush="{DynamicResource BorderBrush}"
+                BorderThickness="1" 
+                Padding="15" 
+                Margin="0,0,0,20"
+                CornerRadius="5">
+            <StackPanel>
+                <TextBlock FontWeight="SemiBold" 
+                           Foreground="{DynamicResource TextBrush}"
+                           Margin="0,0,0,8">
+                    <Run Text="📍 当前位置："/>
+                </TextBlock>
+                <TextBlock x:Name="CurrentPositionText"
+                           Text="版本 3 (abc1234)" 
+                           FontFamily="Consolas"
+                           FontSize="13"
+                           Foreground="{DynamicResource TextBrush}"
+                           Margin="0,0,0,10"/>
+                
+                <TextBlock x:Name="CommitMessageText"
+                           Text="提交信息：修复用户登录问题"
+                           FontSize="12"
+                           Foreground="{DynamicResource TextBrush}"
+                           Opacity="0.8"
+                           TextWrapping="Wrap"/>
+            </StackPanel>
+        </Border>
+
+        <!-- 分支名称输入 -->
+        <StackPanel Grid.Row="3" Margin="0,0,0,20">
+            <TextBlock Text="新分支名称：" 
+                       Margin="0,0,0,8" 
+                       FontWeight="SemiBold"
+                       Foreground="{DynamicResource TextBrush}"/>
+            <TextBox x:Name="BranchNameInput" 
+                     FontSize="14"
+                     FontFamily="Consolas"
+                     TextChanged="BranchNameInput_TextChanged"
+                     Style="{DynamicResource TextBoxStyle}"/>
+            <TextBlock x:Name="ValidationMessage" 
+                       Text="分支名称不能为空" 
+                       Foreground="#DC3545" 
+                       FontSize="11"
+                       Margin="0,5,0,0"
+                       Visibility="Collapsed"/>
+        </StackPanel>
+
+        <!-- 说明信息 -->
+        <Border Grid.Row="4"
+                Background="{DynamicResource NavBackground}"
+                BorderBrush="#17A2B8"
+                BorderThickness="1"
+                Padding="12"
+                CornerRadius="5"
+                VerticalAlignment="Top">
+            <StackPanel>
+                <TextBlock Text="💡 说明：" 
+                           FontWeight="SemiBold" 
+                           FontSize="12"
+                           Foreground="{DynamicResource TextBrush}"
+                           Margin="0,0,0,8"/>
+                <TextBlock FontSize="11" 
+                           LineHeight="18"
+                           Foreground="{DynamicResource TextBrush}"
+                           Opacity="0.8"
+                           TextWrapping="Wrap">
+                    • 将从当前提交创建新分支<LineBreak/>
+                    • 您的所有更改都会保存在新分支上<LineBreak/>
+                    • 可以随时合并回主分支<LineBreak/>
+                    • 新分支会自动推送到远程仓库
+                </TextBlock>
+            </StackPanel>
+        </Border>
+
+        <!-- 按钮 -->
+        <Grid Grid.Row="5" Margin="0,20,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            
+            <Button Grid.Column="1"
+                    Content="取消" 
+                    Click="CancelButton_Click" 
+                    Width="100" 
+                    Margin="0,0,10,0"
+                    Padding="12,8"
+                    Background="#6C757D"
+                    Foreground="White"
+                    BorderThickness="0"
+                    Cursor="Hand">
+                <Button.Style>
+                    <Style TargetType="Button">
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="{TemplateBinding Background}"
+                                            CornerRadius="5"
+                                            Padding="{TemplateBinding Padding}">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                        <Style.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#5A6268"/>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </Button.Style>
+            </Button>
+            
+            <Button x:Name="CreateButton" 
+                    Grid.Column="2"
+                    Content="创建分支并推送" 
+                    Click="CreateButton_Click" 
+                    Width="140"
+                    Padding="12,8"
+                    IsEnabled="False"
+                    Background="#28A745"
+                    Foreground="White"
+                    BorderThickness="0"
+                    Cursor="Hand">
+                <Button.Style>
+                    <Style TargetType="Button">
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="{TemplateBinding Background}"
+                                            CornerRadius="5"
+                                            Padding="{TemplateBinding Padding}">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                        <Style.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#218838"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.5"/>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </Button.Style>
+            </Button>
+        </Grid>
+    </Grid>
+</Window>

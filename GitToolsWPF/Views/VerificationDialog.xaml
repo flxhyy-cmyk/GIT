@@ -1,0 +1,100 @@
+<Window x:Class="GitToolsWPF.Views.VerificationDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="安全验证" 
+        Height="480" Width="450"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        Background="{DynamicResource ContentBackground}"
+        Foreground="{DynamicResource TextBrush}"
+        WindowStyle="SingleBorderWindow">
+    <Grid Margin="30">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" 
+                   Text="⚠️ 安全验证" 
+                   FontSize="20" 
+                   FontWeight="Bold" 
+                   Foreground="#DC3545"
+                   Margin="0,0,0,15"/>
+
+        <TextBlock Grid.Row="1" 
+                   TextWrapping="Wrap" 
+                   Margin="0,0,0,20"
+                   LineHeight="22"
+                   Foreground="{DynamicResource TextBrush}">
+            您即将执行危险操作：清空 GitHub 仓库。<LineBreak/>
+            此操作将永久删除远程仓库的所有内容和历史记录。
+        </TextBlock>
+
+        <Border Grid.Row="2" 
+                Background="#FFF3CD" 
+                BorderBrush="#FFC107" 
+                BorderThickness="1" 
+                Padding="15" 
+                Margin="0,0,0,20"
+                CornerRadius="4">
+            <StackPanel>
+                <TextBlock Text="请输入以下验证码以继续：" 
+                           FontWeight="SemiBold" 
+                           Foreground="#856404" 
+                           Margin="0,0,0,10"/>
+                <TextBlock x:Name="VerificationCodeDisplay" 
+                           Text="1234" 
+                           FontSize="32" 
+                           FontWeight="Bold" 
+                           FontFamily="Consolas"
+                           HorizontalAlignment="Center"
+                           Foreground="#DC3545"
+                           Margin="0,5,0,5"/>
+            </StackPanel>
+        </Border>
+
+        <StackPanel Grid.Row="3" Margin="0,0,0,20">
+            <TextBlock Text="验证码：" 
+                       Margin="0,0,0,8" 
+                       FontWeight="SemiBold"
+                       Foreground="{DynamicResource TextBrush}"/>
+            <TextBox x:Name="VerificationCodeInput" 
+                     Width="200" 
+                     HorizontalAlignment="Left"
+                     FontSize="18"
+                     FontFamily="Consolas"
+                     MaxLength="4"
+                     TextChanged="VerificationCodeInput_TextChanged"
+                     Style="{DynamicResource TextBoxStyle}"/>
+            <TextBlock x:Name="ErrorMessage" 
+                       Text="验证码不正确，请重新输入" 
+                       Foreground="#DC3545" 
+                       Margin="0,8,0,0"
+                       Visibility="Collapsed"/>
+        </StackPanel>
+
+        <StackPanel Grid.Row="5" 
+                    Orientation="Horizontal" 
+                    HorizontalAlignment="Right">
+            <Button Content="取消" 
+                    Click="CancelButton_Click" 
+                    Width="100" 
+                    Margin="0,0,10,0"
+                    Padding="12,8"
+                    Style="{DynamicResource ActionButtonStyle}"/>
+            <Button x:Name="ConfirmButton" 
+                    Content="确认清空" 
+                    Click="ConfirmButton_Click" 
+                    Width="100"
+                    Padding="12,8"
+                    IsEnabled="False"
+                    Background="#DC3545"
+                    Foreground="White"
+                    Style="{DynamicResource ActionButtonStyle}"/>
+        </StackPanel>
+    </Grid>
+</Window>
