@@ -145,6 +145,9 @@ namespace GitToolsWPF
                 
                 // 自动检测仓库地址
                 DetectAndUpdateRepoUrl();
+                
+                // 更新窗口标题
+                ViewModel.SaveSettingsSilently();
             }
         }
 
@@ -324,6 +327,9 @@ namespace GitToolsWPF
                     
                     // 从URL中提取仓库名称
                     var repoName = ExtractRepoName(detectedUrl);
+                    
+                    // 更新窗口标题
+                    ViewModel.SaveSettingsSilently();
                     
                     // 显示检测到的远程仓库
                     ShowNotification($"检测到远方仓库：{repoName}", "#28A745");

@@ -28,6 +28,7 @@ namespace GitToolsWPF.ViewModels
         private bool _isDetachedHead = false;
         private string _selectedBranchFilter = "全部分支";
         private System.Threading.Timer? _themeMonitorTimer;
+        private string _windowTitle = "Git Tools WPF";
 
         public ObservableCollection<string> LogMessages { get; } = new();
         public ObservableCollection<VersionInfo> VersionHistory { get; } = new();
@@ -112,6 +113,12 @@ namespace GitToolsWPF.ViewModels
             }
         }
 
+        public string WindowTitle
+        {
+            get => _windowTitle;
+            set { _windowTitle = value; OnPropertyChanged(); }
+        }
+
         // Commands
         public ICommand ViewHistoryCommand { get; }
         public ICommand ViewLocalChangesCommand { get; }
@@ -171,6 +178,9 @@ namespace GitToolsWPF.ViewModels
             CheckCurrentStatusCommand = new RelayCommand(async () => await CheckCurrentStatusAsync());
 
             ApplyTheme();
+            
+            // 初始化窗口标题
+            UpdateWindowTitle();
             
             // 初始化时检查当前状态
             _ = CheckCurrentStatusAsync();
@@ -296,7 +306,7 @@ namespace GitToolsWPF.ViewModels
             AddLog("\n✓ 完成！");
         }
 
-        private async Task ViewLocalCommitsAsync()
+        private Task ViewLocalCommitsAsync()
         {
             // 打开图形化提交历史对话框
             InitializeGitService();
@@ -318,6 +328,8 @@ namespace GitToolsWPF.ViewModels
             
             var dialog = new Views.CommitHistoryDialog(viewModel);
             dialog.ShowDialog();
+            
+            return Task.CompletedTask;
         }
 
         private async Task ViewLocalBranchesAsync()
@@ -2830,6 +2842,7 @@ namespace GitToolsWPF.ViewModels
                 // 保存前更新历史记录
                 UpdateLocalFolderHistory();
                 _settingsService.SaveSettings(Settings);
+                UpdateWindowTitle();
                 AddLog("✓ 设置已保存");
                 MessageBox.Show("设置已保存！", "成功", MessageBoxButton.OK, MessageBoxImage.Information);
             }
@@ -2848,10 +2861,109 @@ namespace GitToolsWPF.ViewModels
                 // 保存前更新历史记录
                 UpdateLocalFolderHistory();
                 _settingsService.SaveSettings(Settings);
+                UpdateWindowTitle();
             }
             catch
             {
                 // 静默失败，不显示错误
+            }
+        }
+
+        private void UpdateWindowTitle()
+        {
+            var folderName = GetFolderName();
+            var repoName = GetRepoName();
+            
+            // 如果都没有，显示默认标题
+            if (string.IsNullOrEmpty(folderName) && string.IsNullOrEmpty(repoName))
+            {
+                WindowTitle = "Git Tools WPF";
+                return;
+            }
+            
+            // 如果只有文件夹名
+            if (string.IsNullOrEmpty(repoName))
+            {
+                WindowTitle = folderName;
+                return;
+            }
+            
+            // 如果只有仓库名
+            if (string.IsNullOrEmpty(folderName))
+            {
+                WindowTitle = repoName;
+                return;
+            }
+            
+            // 如果都有，显示：文件夹名 (user/repo)
+            WindowTitle = $"{folderName} ({repoName})";
+        }
+
+        private string GetFolderName()
+        {
+            if (!string.IsNullOrEmpty(Settings.LocalFolder))
+            {
+                try
+                {
+                    return System.IO.Path.GetFileName(Settings.LocalFolder.TrimEnd('\\', '/'));
+                }
+                catch
+                {
+                    // 如果路径无效，忽略错误
+                }
+            }
+            
+            return string.Empty;
+        }
+
+        private string GetRepoName()
+        {
+            if (!string.IsNullOrEmpty(Settings.RepoUrl))
+            {
+                return ExtractRepoNameFromUrl(Settings.RepoUrl);
+            }
+            
+            return string.Empty;
+        }
+
+        private string ExtractRepoNameFromUrl(string repoUrl)
+        {
+            try
+            {
+                // 移除 .git 后缀
+                var url = repoUrl.TrimEnd('/');
+                if (url.EndsWith(".git", StringComparison.OrdinalIgnoreCase))
+                {
+                    url = url.Substring(0, url.Length - 4);
+                }
+                
+                // 提取 user/repo 格式
+                if (url.Contains("://"))
+                {
+                    // HTTPS 格式: https://github.com/user/repo
+                    var uri = new Uri(url);
+                    var segments = uri.AbsolutePath.Trim('/').Split('/');
+                    if (segments.Length >= 2)
+                    {
+                        return $"{segments[segments.Length - 2]}/{segments[segments.Length - 1]}";
+                    }
+                }
+                else if (url.Contains(":"))
+                {
+                    // SSH 格式: git@github.com:user/repo
+                    var parts = url.Split(':');
+                    if (parts.Length >= 2)
+                    {
+                        var path = parts[parts.Length - 1].Trim('/');
+                        return path; // 已经是 user/repo 格式
+                    }
+                }
+                
+                return string.Empty;
+            }
+            catch
+            {
+                return string.Empty;
             }
         }
 
