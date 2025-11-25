@@ -399,12 +399,8 @@ namespace GitToolsWPF.ViewModels
                 AddLog($"  仓库地址: {Settings.RepoUrl}");
                 AddLog("========================================");
                 
-                MessageBox.Show(
-                    "推送成功！\n\n" +
-                    $"您的代码已成功推送到：\n{Settings.RepoUrl}",
-                    "成功",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Information);
+                // 使用悬浮通知代替弹窗
+                ShowNotificationRequested?.Invoke("✓ 推送成功！", "#28A745");
             }
             else
             {
@@ -487,13 +483,8 @@ namespace GitToolsWPF.ViewModels
                 AddLog("  提示: 如果 GitHub 页面显示异常，请刷新页面");
                 AddLog("========================================");
                 
-                MessageBox.Show(
-                    "强制推送成功！\n\n" +
-                    $"您的代码已成功推送到：\n{Settings.RepoUrl}\n\n" +
-                    "提示：如果 GitHub 页面显示异常，请刷新页面。",
-                    "成功",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Information);
+                // 使用悬浮通知代替弹窗
+                ShowNotificationRequested?.Invoke("✓ 强制推送成功！", "#28A745");
             }
             else
             {
